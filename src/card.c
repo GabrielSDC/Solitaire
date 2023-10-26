@@ -13,8 +13,8 @@ static void randDeck(Card **deck) {
 
     srand(time(NULL));
 
-    for(int i = 0; i < 54; i++) {
-        rPos = rand() % 54;
+    for(int i = 0; i < 52; i++) {
+        rPos = rand() % 52;
 
         temp = deck[i];
         deck[i] = deck[rPos];
@@ -31,7 +31,7 @@ Card **Card_generateDeck() {
         }
     }
 
-    // randDeck(deck);
+    randDeck(deck);
 
     return deck;
 }
