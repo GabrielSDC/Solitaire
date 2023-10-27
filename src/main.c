@@ -6,8 +6,10 @@ void run() {
     Card **deck = Card_generateDeck();
 
     for(int i = 0; i < 52; i++) {
-        Card_print(deck[i]);
+        printf("%s\n", Card_printable(deck[i]));
     }
+
+    Card c = Card_get("10", DIAMOND);
 }
 
 int main() {

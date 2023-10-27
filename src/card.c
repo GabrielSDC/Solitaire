@@ -42,7 +42,7 @@ Card *Card_init(int value, Suit suit) {
     c->value = malloc(sizeof(char*));
     strcpy(c->value, cardVal[value]);
     c->suit = suit;
-    c->isTurned = false;
+    c->isTurned = true;
     c->isOnTop = false;
     c->next = NULL;
 
