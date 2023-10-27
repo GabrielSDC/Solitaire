@@ -53,6 +53,19 @@ void Card_turn(Card *card) {
     card->isTurned = true;
 }
 
-void Card_print(Card *card) {
-    printf("%s %s\n", card->value, suits[card->suit]);
+char *Card_printable(Card *card) {
+    char *cardInfo = malloc(sizeof(char) * 10);
+
+    strcat(cardInfo, card->value);
+    strcat(cardInfo, suits[card->suit]);
+
+    return cardInfo;
+}
+
+Card *Card_get(Card **deck, char *value) {
+    for(int i = 0; i < 52; i++)
+        if(!strcmp(deck[i]->value, value))
+            return deck[i];
+
+    return NULL;
 }
