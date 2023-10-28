@@ -1,3 +1,1 @@
 Solitaire
-
-Em desenvolvimento
