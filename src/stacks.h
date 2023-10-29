@@ -1,9 +1,14 @@
 #include <stdbool.h>
 #include "card.h"
 
+typedef enum {
+    NONE, TABLEAU, FOUNDATION, STOCK, STOCK_SIDE
+} StackType;
+
 typedef struct {
     int size;
     Card first;
+    StackType type;
 } Stack;
 
 Stack *Stack_init();
