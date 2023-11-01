@@ -1,7 +1,7 @@
 #include <stdbool.h>
 
 typedef enum {
-    HEARTS = 0, SPADES, DIAMONDS, CLUBS 
+    HEARTS = 0, SPADES, DIAMONDS, CLUBS,
 } Suit;
 
 typedef struct Card Card; 
