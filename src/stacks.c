@@ -26,7 +26,6 @@ void Stack_pushCards(Stack *stack, Card *card) {
     temp = stack->first;
 
     if(!temp) {
-        card->isOnTop = true;
         stack->first = card;
     }
     else {
@@ -111,7 +110,7 @@ Stack **Stack_generateGame(Card **deck) {
             // printf("-> %s ", Card_printable(deck[cnt-1]->next));
         }
         // printf(".\n");
-        deck[++cnt]->isTurned = false;
+        deck[cnt++]->isTurned = false;
 
         Stack_pushCards(gameStacks[i], deck[initialPos]);
     }

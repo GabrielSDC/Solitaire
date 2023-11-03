@@ -54,10 +54,25 @@ void Card_turn(Card *card) {
 }
 
 char *Card_printable(Card *card) {
-    char *cardInfo = malloc(sizeof(char) * 10);
+    if(card->isTurned)
+        return UNTURNED_CARD;
 
+    char *cardInfo = malloc(sizeof(char) * 30);
+
+    strcat(cardInfo, "\e[47");
+    
+    if(card->suit == CLUBS || card->suit == SPADES)
+        strcat(cardInfo, ";30m┌");
+    else
+        strcat(cardInfo, ";31m┌");
+    
     strcat(cardInfo, card->value);
     strcat(cardInfo, suits[card->suit]);
+    
+    if(strlen(card->value) == 1)
+        strcat(cardInfo, "─");
+    
+    strcat(cardInfo, "─┐\e[0m");
 
     return cardInfo;
 }

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "stacks.h"
+#include "game.h"
 
 void run() {
     Card **deck = Card_generateDeck();
@@ -18,22 +18,25 @@ void run() {
         printf("\n");
     }
 
-    for(Card *temp = s[STOCK]->first; temp != NULL; temp = temp->next) {
-        printf("%s ", Card_printable(temp));
-    }
-    printf("\n");
+    // for(Card *temp = s[STOCK]->first; temp != NULL; temp = temp->next) {
+    //     printf("%s ", Card_printable(temp));
+    // }
+    // printf("\n");
 
-    for(Card *temp = s[STOCK_SIDE]->first; temp != NULL; temp = temp->next) {
-        printf("%s ", Card_printable(temp));
-    }
-    printf("\n");
+    // for(Card *temp = s[STOCK_SIDE]->first; temp != NULL; temp = temp->next) {
+    //     printf("%s ", Card_printable(temp));
+    // }
+    // printf("\n");
 
-    for(int i = 0; i < 4; i++) {
-        for(Card *temp = s[FOUNDATION + i]->first; temp != NULL; temp = temp->next) {
-            printf("%s ", Card_printable(temp));
-        }
-        printf("\n");
-    }
+    // for(int i = 0; i < 4; i++) {
+    //     for(Card *temp = s[FOUNDATION + i]->first; temp != NULL; temp = temp->next) {
+    //         printf("%s ", Card_printable(temp));
+    //     }
+    //     printf("\n");
+    // }
+
+    printf("\n");
+    print_stack(s[TABLEAU + 6]);
 }
 
 int main() {
