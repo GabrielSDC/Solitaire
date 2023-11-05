@@ -34,6 +34,7 @@ void Stack_pushCards(Stack *stack, Card *card) {
 
         temp->isOnTop = false;
         temp->next = card;
+        temp = NULL;
         free(temp);
     }
     
@@ -50,6 +51,8 @@ void Stack_pushCards(Stack *stack, Card *card) {
             stack->size++;
             temp = temp->next;
         }
+        stack->size++;
+
         // printf("%s.\n", Card_printable(temp));
 
         temp->isOnTop = true;
@@ -59,13 +62,13 @@ void Stack_pushCards(Stack *stack, Card *card) {
 }
 
 Card *Stack_popCards(Stack *stack, char *value) {
-    Card *card = NULL, *anterior = NULL;
+    Card *card = NULL, *anterior = NULL, *temp = NULL;
 
     if(!Stack_isEmpty(stack) && value) {
         card = stack->first;
 
         while(card) {
-            if(!strcmp(card->value, value))
+            if(!strcmp(card->value, value) && !card->isTurned)
                 break;
         
             anterior = card;
@@ -74,20 +77,44 @@ Card *Stack_popCards(Stack *stack, char *value) {
 
         if(card) {
             if(anterior) {
-                if(anterior->isTurned)
+                if(anterior->isTurned && stack->type == TABLEAU)
                     anterior->isTurned = false;
                 anterior->isOnTop = true;
                 anterior->next = NULL;
+                
+                anterior = NULL;
+                free(anterior);
+            }
+            else {
+                stack->first = NULL;
             }
 
-            while(card) {
+            temp = card;
+            while(temp) {
                 stack->size--;
-                card = card->next;
+                temp = temp->next;
             }
+
+            temp = NULL;
+            free(temp);
         }
     }
 
     return card;
+}
+
+void Stack_returnUnusedCard(Stack *stack, Card *card) {
+    Card *temp = stack->first;
+    while(temp) {
+        if(!temp->next)
+            break;
+        temp = temp->next;
+    }
+    temp->isTurned = true;
+    temp->next = card;
+    stack->size++;
+    temp = NULL;
+    free(temp);
 }
 
 bool Stack_isEmpty(Stack *stack) {
