@@ -1,8 +1,12 @@
 #include <stdbool.h>
 
-#define UNTURNED_CARD "\e[44;37m┌────┐\e[0m"
-#define TURNED_CARD_M "\e[47m│    │\e[0m"
-#define TURNED_CARD_B "\e[47m└────┘\e[0m"
+#define TURNED_CARD "\e[44;37m┌────┐\e[0m"
+#define UNTURNED_CARD_M "\e[47m│    │\e[0m"
+#define UNTURNED_CARD_B "\e[47m└────┘\e[0m"
+
+#define EMPTY_CARD_T "┌────┐"
+#define EMPTY_CARD_M "│    │"
+#define EMPTY_CARD_B "└────┘"
 
 typedef enum {
     HEARTS = 0, SPADES, DIAMONDS, CLUBS,

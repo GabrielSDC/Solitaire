@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 #include "card.h"
 
-static const char *cardVal[] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
-static const char *suits[] = {"♥", "♠", "♦", "♣"};
+const char *cardVal[] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
+const char *suits[] = {"♥", "♠", "♦", "♣"};
 
 static void randDeck(Card **deck) {
     Card *temp;
@@ -55,7 +56,7 @@ void Card_turn(Card *card) {
 
 char *Card_printable(Card *card) {
     if(card->isTurned)
-        return UNTURNED_CARD;
+        return TURNED_CARD;
 
     char *cardInfo = malloc(sizeof(char) * 30);
 

@@ -3,40 +3,14 @@
 #include "game.h"
 
 void run() {
-    Card **deck = Card_generateDeck();
+    Game_init();
 
-    // for(int i = 0; i < 52; i++) {
-    //     printf("%s\n", Card_printable(deck[i]));
-    // }
-
-    Stack **s = Stack_generateGame(deck);
-
-    for(int i = 0; i < 7; i++) {
-        for(Card *temp = s[TABLEAU + i]->first; temp != NULL; temp = temp->next) {
-            printf("%s ", Card_printable(temp));
-        }
-        printf("\n");
+    while(!Game_isWon()) {
+        system("clear");
+        Game_printGame();
+        Game_printTableau();
+        Game_input();
     }
-
-    // for(Card *temp = s[STOCK]->first; temp != NULL; temp = temp->next) {
-    //     printf("%s ", Card_printable(temp));
-    // }
-    // printf("\n");
-
-    // for(Card *temp = s[STOCK_SIDE]->first; temp != NULL; temp = temp->next) {
-    //     printf("%s ", Card_printable(temp));
-    // }
-    // printf("\n");
-
-    // for(int i = 0; i < 4; i++) {
-    //     for(Card *temp = s[FOUNDATION + i]->first; temp != NULL; temp = temp->next) {
-    //         printf("%s ", Card_printable(temp));
-    //     }
-    //     printf("\n");
-    // }
-
-    printf("\n");
-    print_stack(s[TABLEAU + 6]);
 }
 
 int main() {

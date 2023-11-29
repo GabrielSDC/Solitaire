@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 #include "stacks.h"
 
 Stack **Stack_init(int size) {
@@ -11,6 +10,7 @@ Stack **Stack_init(int size) {
         s[i] = malloc(sizeof(Stack));
         s[i]->size = 0;
         s[i]->first = NULL;
+        s[i]->top = NULL;
         s[i]->type = NONE;
     }
 
@@ -23,49 +23,75 @@ void Stack_pushCards(Stack *stack, Card *card) {
     if(!card)
         return;
 
-    temp = stack->first;
+    temp = stack->top;
 
     if(!temp) {
         stack->first = card;
     }
     else {
-        while(temp->next)
-            temp = temp->next;
-
         temp->isOnTop = false;
         temp->next = card;
+        temp = NULL;
         free(temp);
     }
-    
+
+    stack->size++;
 
     if(card->next == NULL) {
         card->isOnTop = true;
-        stack->size++;
-        // printf("%s.\n", Card_printable(card));
+        stack->top = card;
     }
     else {
         temp = card;
         while(temp->next) {
-            // printf("%s ", Card_printable(temp));
             stack->size++;
             temp = temp->next;
         }
-        // printf("%s.\n", Card_printable(temp));
 
         temp->isOnTop = true;
+        stack->top = temp;
         temp = NULL;
         free(temp);
     }
 }
 
 Card *Stack_popCards(Stack *stack, char *value) {
-    Card *card = NULL, *anterior = NULL;
+    Card *card = NULL, *anterior = NULL, *temp = NULL;
 
-    if(!Stack_isEmpty(stack) && value) {
+    if(!stack)
+        return NULL;
+
+    if(!Stack_isEmpty(stack)) {
         card = stack->first;
 
+        if(value == NULL) {
+            while(card->next) {
+                anterior = card;
+                card = card->next;
+            }
+            
+            if(anterior) {
+                anterior->isOnTop = true;
+                anterior->next = NULL;
+                stack->top = anterior;
+            }
+            else {
+                stack->first = NULL;
+                stack->top = NULL;
+            }
+            
+            anterior = NULL;
+            free(anterior);
+
+            card->next = NULL;
+            card->isOnTop = false;
+            stack->size--;
+            
+            return card;
+        }
+
         while(card) {
-            if(!strcmp(card->value, value))
+            if(!strcmp(card->value, value) && !card->isTurned)
                 break;
         
             anterior = card;
@@ -74,20 +100,59 @@ Card *Stack_popCards(Stack *stack, char *value) {
 
         if(card) {
             if(anterior) {
-                if(anterior->isTurned)
+                if(anterior->isTurned && stack->type == TABLEAU)
                     anterior->isTurned = false;
                 anterior->isOnTop = true;
                 anterior->next = NULL;
-            }
+                stack->top = anterior;
+                
+                anterior = NULL;
+                free(anterior);
+                
+                temp = card;
+                while(temp) {
+                    stack->size--;
+                    temp = temp->next;
+                }
 
-            while(card) {
-                stack->size--;
-                card = card->next;
+                temp = NULL;
+                free(temp);
+            }
+            else {
+                stack->first = NULL;
+                stack->top = NULL;
+                stack->size = 0;
             }
         }
     }
 
     return card;
+}
+
+void Stack_returnUnusedCard(Stack *stack, Card *card) {
+    if(!stack || !card)
+        return;
+
+    if(!Stack_isEmpty(stack)) {
+        stack->top->isTurned = true;
+        stack->top->isOnTop = false;
+        stack->top->next = card;    
+    }
+    else {
+        stack->first = card;
+    }
+
+    Card *temp = card;
+    while(temp->next) {
+        stack->size++;
+        temp = temp->next;
+    }
+
+    stack->size++;
+    stack->top = temp;
+
+    temp = NULL;
+    free(temp);
 }
 
 bool Stack_isEmpty(Stack *stack) {
@@ -102,14 +167,11 @@ Stack **Stack_generateGame(Card **deck) {
     for(int i = 0; i < 7; i++) {
         gameStacks[i]->type = TABLEAU;
         initialPos = cnt;
-        // printf("%s ", Card_printable(deck[cnt]));
 
         for(int j = 0; j < i; j++) {
             cnt++;
             deck[cnt - 1]->next = deck[cnt];
-            // printf("-> %s ", Card_printable(deck[cnt-1]->next));
         }
-        // printf(".\n");
         deck[cnt++]->isTurned = false;
 
         Stack_pushCards(gameStacks[i], deck[initialPos]);
@@ -122,7 +184,9 @@ Stack **Stack_generateGame(Card **deck) {
     // generate the stock and stock_side
     initialPos = cnt;
     while(cnt < 51) {
+        deck[cnt]->isTurned = false;
         cnt++;
+        deck[cnt]->isTurned = false;
         deck[cnt - 1]->next = deck[cnt];
     }
 
