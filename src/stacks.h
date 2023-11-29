@@ -13,7 +13,9 @@ typedef struct {
 } Stack;
 
 Stack **Stack_generateGame(Card **deck);
+Stack **Stack_generateGame(Card **deck);
 Stack **Stack_init(int size);
+bool    Stack_isEmpty(Stack *stack);
 bool    Stack_isEmpty(Stack *stack);
 void    Stack_pushCards(Stack *stack, Card *card);
 Card   *Stack_popCards(Stack *stack, char *value);

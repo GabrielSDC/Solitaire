@@ -123,6 +123,9 @@ Card *Stack_popCards(Stack *stack, char *value) {
                 stack->top = NULL;
                 stack->size = 0;
             }
+
+            temp = NULL;
+            free(temp);
         }
     }
 

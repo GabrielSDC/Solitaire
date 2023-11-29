@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "game.h"
 
 Stack **Game_stacks;
@@ -118,8 +121,8 @@ void Game_moveToFoundation(int origin, char *card_value) {
                 }
             }
             else {
-                Stack_returnUnusedCard(Game_stacks[origin], moving_card);
                 strcpy(error_message, "Invalid movement!3");
+                Stack_returnUnusedCard(Game_stacks[origin], moving_card);
             }
 
             top = NULL;
@@ -237,8 +240,12 @@ void print_stack(Stack *stack) {
             if(temp->suit == CLUBS || temp->suit == SPADES) {
                 printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_M);
                 printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_B);
+                printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_M);
+                printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_B);
             }
             else {
+                printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_B);
+                printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_M);
                 printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_B);
                 printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_M);
             }
