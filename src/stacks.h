@@ -19,7 +19,5 @@ bool    Stack_isEmpty(Stack *stack);
 bool    Stack_isEmpty(Stack *stack);
 void    Stack_pushCards(Stack *stack, Card *card);
 Card   *Stack_popCards(Stack *stack, char *value);
-Card   *Stack_getPos(Stack *stack, int position);
 void    Stack_returnUnusedCard(Stack *stack, Card *card);
 int   **Stack_print(Stack *stack);
-Card   *Stack_getLast(Stack *stack);

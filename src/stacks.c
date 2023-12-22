@@ -132,6 +132,8 @@ Card *Stack_popCards(Stack *stack, char *value) {
     return card;
 }
 
+// a consertar: quando uma carta é retornada, ela vira a anterior independente de ela já estar desvirada 
+// antes da tentativa de movimentação acontecer
 void Stack_returnUnusedCard(Stack *stack, Card *card) {
     if(!stack || !card)
         return;
@@ -198,18 +200,6 @@ Stack **Stack_generateGame(Card **deck) {
     gameStacks[STOCK_SIDE]->type = STOCK_SIDE;
 
     return gameStacks;
-}
-
-Card *Stack_getPos(Stack *stack, int position) {
-    if(position >= stack->size)
-        return NULL; 
-
-    Card *card = stack->first;
-
-    for(int i = 0; i < position; i++)
-        card = card->next;
-
-    return card;
 }
 
 int  **Stack_print(Stack *stack);

@@ -6,7 +6,6 @@
 #include "card.h"
 
 const char *cardVal[] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
-const char *suits[] = {"♥", "♠", "♦", "♣"};
 
 static void randDeck(Card **deck) {
     Card *temp;
@@ -52,30 +51,6 @@ Card *Card_init(int value, Suit suit) {
 
 void Card_turn(Card *card) {
     card->isTurned = true;
-}
-
-char *Card_printable(Card *card) {
-    if(card->isTurned)
-        return TURNED_CARD;
-
-    char *cardInfo = malloc(sizeof(char) * 30);
-
-    strcat(cardInfo, "\e[47");
-    
-    if(card->suit == CLUBS || card->suit == SPADES)
-        strcat(cardInfo, ";30m┌");
-    else
-        strcat(cardInfo, ";31m┌");
-    
-    strcat(cardInfo, card->value);
-    strcat(cardInfo, suits[card->suit]);
-    
-    if(strlen(card->value) == 1)
-        strcat(cardInfo, "─");
-    
-    strcat(cardInfo, "─┐\e[0m");
-
-    return cardInfo;
 }
 
 Card *Card_get(Card **deck, char *value) {

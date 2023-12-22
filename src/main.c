@@ -5,12 +5,12 @@
 void run() {
     Game_init();
 
-    while(!Game_isWon()) {
+    do {
         system("clear");
-        Game_printGame();
-        Game_printTableau();
+        UI_printScreen();
         Game_input();
     }
+    while(!Game_isWon());
 }
 
 int main() {
