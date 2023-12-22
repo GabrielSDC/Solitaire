@@ -2,9 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include "game.h"
 
 Stack **Game_stacks;
@@ -13,6 +10,7 @@ char error_message[100];
 void Game_init() {
     Card **deck = Card_generateDeck();
     Game_stacks = Stack_generateGame(deck);
+    UI_initScreen(Game_stacks);
 }
 
 void Game_input() {
@@ -28,15 +26,21 @@ void Game_input() {
     }
     else if(!strcmp(move, "n")) {
         Game_moveCards(STOCK, NULL, STOCK_SIDE);
+        UI_updateScreen(STOCK, STOCK_SIDE);
     }
     else if(!strcmp(move, "s")) {
         printf("to: ");
         scanf(" %s", to);
 
-        if(atoi(to) > 0)
+        if(atoi(to) > 0) {
             Game_moveCards(STOCK_SIDE, NULL, atoi(to) - 1);
-        else if(!strcmp(to, "f"))
+            UI_updateScreen(STOCK_SIDE, atoi(to) - 1);
+        }
+        else if(!strcmp(to, "f")) {
+            StackType st = Game_stacks[STOCK_SIDE]->top->suit;
             Game_moveToFoundation(STOCK_SIDE, NULL);
+            UI_updateScreen(STOCK_SIDE, FOUNDATION + st);
+        }
         else
             strcpy(error_message, "Invalid input!1");
     }
@@ -46,10 +50,15 @@ void Game_input() {
         printf("to: ");
         scanf(" %s", to);
 
-        if(atoi(to) > 0)
+        if(atoi(to) > 0) {
             Game_moveCards(atoi(move) - 1, value, atoi(to) - 1);
-        else if(!strcmp(to, "f"))
+            UI_updateScreen(atoi(move) - 1, atoi(to) - 1);
+        }
+        else if(!strcmp(to, "f")) {
+            StackType st = Game_stacks[atoi(move) - 1]->top->suit;
             Game_moveToFoundation(atoi(move) - 1, value);
+            UI_updateScreen(atoi(move) - 1, FOUNDATION + st);
+        }
         else
             strcpy(error_message, "Invalid input!2");
     }
@@ -147,10 +156,10 @@ void Game_moveCards(int origin_tb, char *card_value, int finish_tb) {
             moving_card->isTurned = false;
             Stack_pushCards(Game_stacks[STOCK_SIDE], moving_card);
         }
-        // else {
-            // while(!Stack_isEmpty(Game_stacks[STOCK_SIDE]))
-            //     Stack_pushCards(Game_stacks[STOCK], Stack_popCards(Game_stacks[STOCK_SIDE], NULL));
-        // }
+        else {
+            while(!Stack_isEmpty(Game_stacks[STOCK_SIDE]))
+                Stack_pushCards(Game_stacks[STOCK], Stack_popCards(Game_stacks[STOCK_SIDE], NULL));
+        }
     }
     else {
         if(origin_tb == STOCK)
@@ -186,71 +195,9 @@ void Game_moveCards(int origin_tb, char *card_value, int finish_tb) {
             strcpy(error_message, "Card not found!");
         }
     }
-    
+
     moving_card = NULL;
     free(moving_card);
-
-    printf("aqui\n");
-}
-    
-void Game_printGame() {
-    printf("s: ");
-    if(!Stack_isEmpty(Game_stacks[STOCK]))
-        printf("%s ", TURNED_CARD);
-    else
-        printf("       ");
-
-    printf("%d ", Game_stacks[STOCK]->size);
-    
-    if(!Stack_isEmpty(Game_stacks[STOCK_SIDE])) {
-        printf("%s ", Card_printable(Game_stacks[STOCK_SIDE]->top));
-    }
-    else
-        printf("       ");
-
-
-    printf("%d ", Game_stacks[STOCK_SIDE]->size);
-    
-    printf("f: ");
-    for(int i = FOUNDATION; i < FOUNDATION + 4; i++) {
-        if(!Stack_isEmpty(Game_stacks[i])) {
-            printf("%s", Card_printable(Game_stacks[i]->top));
-        }
-        else
-            printf("       ");
-    }
-    printf("\n\n");
-}
-
-void Game_printTableau() {
-    for(int i = 0; i < 7; i++) {
-        printf("%d: ", i + 1);
-        for(Card *temp = Game_stacks[TABLEAU + i]->first; temp != NULL; temp = temp->next) {
-            printf("%s ", Card_printable(temp));
-        }
-        printf("%d\n", Game_stacks[TABLEAU + i]->size);
-    }
-}
-
-void print_stack(Stack *stack) {
-    for(Card *temp = stack->first; temp != NULL; temp = temp->next) {
-        printf("%s\n", Card_printable(temp));
-
-        if(temp->isOnTop) {
-            if(temp->suit == CLUBS || temp->suit == SPADES) {
-                printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_M);
-                printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_B);
-                printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_M);
-                printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_B);
-            }
-            else {
-                printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_B);
-                printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_M);
-                printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_B);
-                printf("\e[0;30m%s\e[0m\n", UNTURNED_CARD_M);
-            }
-        }
-    }
 }
 
 bool Game_isWon() {
@@ -260,3 +207,4 @@ bool Game_isWon() {
 
     return true;
 }
+
