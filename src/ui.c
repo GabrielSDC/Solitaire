@@ -40,7 +40,19 @@ char *TURNED_CARD[] = {"\e[44;37m┌────┐\e[0m",
                        "\e[44;37m│    │\e[0m",
                        "\e[44;37m│    │\e[0m",
                        "\e[44;37m└────┘\e[0m"};
-   
+
+char *TITLE[] = {
+		"♢ ♥ ♤ ♠ ♧ ♦ ♡ ♣ ♢ ♥ ♤ ♠ ♧ ♦ ♡ ♣ ♢ ♥ ♤ ♠ ♧ ♦ ♡ ♣ ♢ ♥ ♤ ♠ ♧ ♦ ♡ ♣ ♢ ♥ ♤ ♠ ♧ ♦ ♡ ♣ ♢ ♥ ♤ ♠ ♧ ♦ ♡ ♣ ♢ ♥ ♤ ♠ ♧ ♦ ♡ ♣ ♢ ♥ ♤\n",
+		"    ██████████                  ██████      ████        ████                      ████",
+		"  ████      ████                  ████                  ████",
+		"  ████              ████████      ████    ██████    ████████████    ████████    ██████    ████  ████    ████████",
+		"    ██████████    ████    ████    ████      ████        ████              ████    ████    ██████      ████    ████",
+		"            ████  ████    ████    ████      ████        ████        ██████████    ████    ████        ████████████",
+		"  ████      ████  ████    ████    ████      ████        ████      ████    ████    ████    ████        ████",
+		"    ██████████      ████████    ████████  ████████      ████        ██████████  ████████  ████          ██████████\n",
+		"♢ ♥ ♤ ♠ ♧ ♦ ♡ ♣ ♢ ♥ ♤ ♠ ♧ ♦ ♡ ♣ ♢ ♥ ♤ ♠ ♧ ♦ ♡ ♣ ♢ ♥ ♤ ♠ ♧ ♦ ♡ ♣ ♢ ♥ ♤ ♠ ♧ ♦ ♡ ♣ ♢ ♥ ♤ ♠ ♧ ♦ ♡ ♣ ♢ ♥ ♤ ♠ ♧ ♦ ♡ ♣ ♢ ♥ ♤"
+	}; 
+
 void UI_initScreen(Stack **s) {
     stacks = s;
 
@@ -85,12 +97,6 @@ void UI_initScreen(Stack **s) {
         while(pos < 60) {
             screen[pos++][i] = BLANK_SPACE;
         }
-    }
-}
-
-static void updateString(char *ori, int posI, char *dest, int size) {
-    for(int i = posI; i < size; i++) {
-        ori[i] = dest[i - posI];
     }
 }
 
@@ -248,7 +254,19 @@ void UI_updateScreen(int origin_tb, int finish_tb) {
     }
 }
 
+void UI_printLogo() {
+    system("clear");
+    for(int i = 0; i < 9; i++) {
+        printf("%s\n", TITLE[i]);
+    }
+
+    printf("\n\n\t\t\t\t\t press ENTER to start\n");
+    scanf("%*c");
+}
+
 void UI_printScreen() {
+    system("clear");
+
     for(int i = 0; i < longest_stack + 8; i++) {
         for(int j = 0; j < 7; j++) {
             printf("%s ", screen[i][j]);
