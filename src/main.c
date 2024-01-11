@@ -6,11 +6,13 @@ void run() {
     Game_init();
 
     do {
-        system("clear");
         UI_printScreen();
         Game_input();
     }
     while(!Game_isWon());
+
+    UI_printScreen();
+    Game_freeStacks();
 }
 
 int main() {

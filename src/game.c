@@ -11,6 +11,7 @@ void Game_init() {
     Card **deck = Card_generateDeck();
     Game_stacks = Stack_generateGame(deck);
     UI_initScreen(Game_stacks);
+    UI_printLogo();
 }
 
 void Game_input() {
@@ -32,7 +33,7 @@ void Game_input() {
         printf("to: ");
         scanf(" %s", to);
 
-        if(atoi(to) > 0) {
+        if(atoi(to) > 0 && atoi(move) < 8) {
             Game_moveCards(STOCK_SIDE, NULL, atoi(to) - 1);
             UI_updateScreen(STOCK_SIDE, atoi(to) - 1);
         }
@@ -44,13 +45,13 @@ void Game_input() {
         else
             strcpy(error_message, "Invalid input!1");
     }
-    else if(atoi(move) > 0) {
+    else if(atoi(move) > 0 && atoi(move) < 8) {
         printf("Card: ");
         scanf(" %s", value);
         printf("to: ");
         scanf(" %s", to);
 
-        if(atoi(to) > 0) {
+        if(atoi(to) > 0 && atoi(to) < 8) {
             Game_moveCards(atoi(move) - 1, value, atoi(to) - 1);
             UI_updateScreen(atoi(move) - 1, atoi(to) - 1);
         }
@@ -208,3 +209,17 @@ bool Game_isWon() {
     return true;
 }
 
+static void freeCards(Card *c) {
+    if(c) {
+        freeCards(c->next);
+        free(c);
+    }
+}
+
+void Game_freeStacks() {
+    for(int i = 0; i < NONE; i++) {
+        freeCards(Game_stacks[i]->first);
+        free(Game_stacks[i]);
+    }
+    free(Game_stacks);
+}
