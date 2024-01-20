@@ -111,6 +111,7 @@ void Game_moveToFoundation(int origin, char *card_value) {
     if(moving_card) {
         if(Stack_isEmpty(Game_stacks[FOUNDATION + moving_card->suit])) {
             if(!strcmp(moving_card->value, "A")) {
+                Card_turn(Game_stacks[origin]->top);
                 Stack_pushCards(Game_stacks[FOUNDATION + moving_card->suit], moving_card);
             }
             else {
@@ -123,6 +124,7 @@ void Game_moveToFoundation(int origin, char *card_value) {
 
             if(strcmp(top->value, "K")) {
                 if(isMovementValid(top, moving_card, FOUNDATION)) {
+                    Card_turn(Game_stacks[origin]->top);
                     Stack_pushCards(Game_stacks[FOUNDATION + moving_card->suit], moving_card);
                 }
                 else {
@@ -163,14 +165,12 @@ void Game_moveCards(int origin_tb, char *card_value, int finish_tb) {
         }
     }
     else {
-        if(origin_tb == STOCK)
-            moving_card = Stack_popCards(Game_stacks[origin_tb], NULL);
-        else
-            moving_card = Stack_popCards(Game_stacks[origin_tb], toupperstr(card_value));
+        moving_card = Stack_popCards(Game_stacks[origin_tb], toupperstr(card_value));
 
         if(moving_card) {
             if(Stack_isEmpty(Game_stacks[finish_tb])) {
                 if(!strcmp(moving_card->value, "K")) {
+                    Card_turn(Game_stacks[origin_tb]->top);
                     Stack_pushCards(Game_stacks[finish_tb], moving_card);
                 }
                 else {
@@ -181,6 +181,7 @@ void Game_moveCards(int origin_tb, char *card_value, int finish_tb) {
                 Card *top = Game_stacks[finish_tb]->top;
 
                 if(isMovementValid(top, moving_card, TABLEAU)) {
+                    Card_turn(Game_stacks[origin_tb]->top);
                     Stack_pushCards(Game_stacks[finish_tb], moving_card);
                 }
                 else {

@@ -58,88 +58,82 @@ void Stack_pushCards(Stack *stack, Card *card) {
 Card *Stack_popCards(Stack *stack, char *value) {
     Card *card = NULL, *anterior = NULL, *temp = NULL;
 
-    if(!stack)
+    if(!stack || Stack_isEmpty(stack))
         return NULL;
 
-    if(!Stack_isEmpty(stack)) {
-        card = stack->first;
+    card = stack->first;
 
-        if(value == NULL) {
-            while(card->next) {
-                anterior = card;
-                card = card->next;
-            }
-            
-            if(anterior) {
-                anterior->isOnTop = true;
-                anterior->next = NULL;
-                stack->top = anterior;
-            }
-            else {
-                stack->first = NULL;
-                stack->top = NULL;
-            }
-            
-            anterior = NULL;
-            free(anterior);
-
-            card->next = NULL;
-            card->isOnTop = false;
-            stack->size--;
-            
-            return card;
-        }
-
-        while(card) {
-            if(!strcmp(card->value, value) && !card->isTurned)
-                break;
-        
+    if(value == NULL) {
+        while(card->next) {
             anterior = card;
             card = card->next;
         }
+        
+        if(anterior) {
+            anterior->isOnTop = true;
+            anterior->next = NULL;
+            stack->top = anterior;
+        }
+        else {
+            stack->first = NULL;
+            stack->top = NULL;
+        }
+        
+        anterior = NULL;
+        free(anterior);
 
-        if(card) {
-            if(anterior) {
-                if(anterior->isTurned && stack->type == TABLEAU)
-                    anterior->isTurned = false;
-                anterior->isOnTop = true;
-                anterior->next = NULL;
-                stack->top = anterior;
-                
-                anterior = NULL;
-                free(anterior);
-                
-                temp = card;
-                while(temp) {
-                    stack->size--;
-                    temp = temp->next;
-                }
+        card->next = NULL;
+        card->isOnTop = false;
+        stack->size--;
+        
+        return card;
+    }
 
-                temp = NULL;
-                free(temp);
-            }
-            else {
-                stack->first = NULL;
-                stack->top = NULL;
-                stack->size = 0;
-            }
+    while(card) {
+        if(!strcmp(card->value, value) && !card->isTurned)
+            break;
+    
+        anterior = card;
+        card = card->next;
+    }
 
-            temp = NULL;
-            free(temp);
+    if(!card)
+        return NULL;
+
+    if(anterior) {
+        // if(anterior->isTurned && stack->type == TABLEAU)
+        //     anterior->isTurned = false;
+        anterior->isOnTop = true;
+        anterior->next = NULL;
+        stack->top = anterior;
+        
+        anterior = NULL;
+        free(anterior);
+        
+        temp = card;
+        while(temp) {
+            stack->size--;
+            temp = temp->next;
         }
     }
+    else {
+        stack->first = NULL;
+        stack->top = NULL;
+        stack->size = 0;
+    }
+
+    temp = NULL;
+    free(temp);
 
     return card;
 }
 
-// a consertar: quando uma carta é retornada, ela vira a anterior independente de ela já estar desvirada 
-// antes da tentativa de movimentação acontecer
 void Stack_returnUnusedCard(Stack *stack, Card *card) {
     if(!stack || !card)
         return;
 
     if(!Stack_isEmpty(stack)) {
-        stack->top->isTurned = true;
+        // stack->top->isTurned = true;
         stack->top->isOnTop = false;
         stack->top->next = card;    
     }
@@ -161,6 +155,9 @@ void Stack_returnUnusedCard(Stack *stack, Card *card) {
 }
 
 bool Stack_isEmpty(Stack *stack) {
+    if(!stack)
+        return true;
+
     return stack->size == 0;
 }
 
@@ -201,5 +198,3 @@ Stack **Stack_generateGame(Card **deck) {
 
     return gameStacks;
 }
-
-int  **Stack_print(Stack *stack);

@@ -50,7 +50,8 @@ Card *Card_init(int value, Suit suit) {
 }
 
 void Card_turn(Card *card) {
-    card->isTurned = true;
+    if(card)
+        card->isTurned = false;
 }
 
 Card *Card_get(Card **deck, char *value) {
