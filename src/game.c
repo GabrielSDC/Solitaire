@@ -7,11 +7,62 @@
 Stack **Game_stacks;
 char error_message[100];
 
+Stack **Game_startStacks(Card **deck) {
+    Stack **gameStacks = Stack_init(13);
+    int initialPos, cnt = 0;
+
+    // generate the tableau
+    for(int i = 0; i < 7; i++) {
+        gameStacks[i]->type = TABLEAU;
+        initialPos = cnt;
+
+        for(int j = 0; j < i; j++) {
+            cnt++;
+            deck[cnt - 1]->next = deck[cnt];
+        }
+        deck[cnt++]->isTurned = false;
+
+        Stack_pushCards(gameStacks[i], deck[initialPos]);
+    }
+
+    // generate the empty foundations
+    for(int i = FOUNDATION; i < FOUNDATION + 4; i++)
+        gameStacks[i]->type = FOUNDATION;
+
+    // generate the stock and stock_side
+    initialPos = cnt;
+    while(cnt < 51) {
+        deck[cnt]->isTurned = false;
+        cnt++;
+        deck[cnt]->isTurned = false;
+        deck[cnt - 1]->next = deck[cnt];
+    }
+
+    Stack_pushCards(gameStacks[STOCK], deck[initialPos]);
+    gameStacks[STOCK]->type = STOCK;
+    gameStacks[STOCK_SIDE]->type = STOCK_SIDE;
+
+    return gameStacks;
+}
+
 void Game_init() {
     Card **deck = Card_generateDeck();
-    Game_stacks = Stack_generateGame(deck);
+    Game_stacks = Game_startStacks(deck);
     UI_initScreen(Game_stacks);
     UI_printLogo();
+}
+
+static int getCardValue(char *value) {
+    int num = atoi(value); 
+    if(num > 0 && num < 11)
+        return num - 1;
+
+    char letter = toupper(value[0]);
+    if(letter == 'J') return 10;
+    if(letter == 'Q') return 11; 
+    if(letter == 'K') return 12;
+
+    return -1;
 }
 
 void Game_input() {
@@ -26,7 +77,7 @@ void Game_input() {
         // Game_helpMessage();
     }
     else if(!strcmp(move, "n")) {
-        Game_moveCards(STOCK, NULL, STOCK_SIDE);
+        Game_moveCards(STOCK, -1, STOCK_SIDE);
         UI_updateScreen(STOCK, STOCK_SIDE);
     }
     else if(!strcmp(move, "s")) {
@@ -34,12 +85,12 @@ void Game_input() {
         scanf(" %s", to);
 
         if(atoi(to) > 0 && atoi(move) < 8) {
-            Game_moveCards(STOCK_SIDE, NULL, atoi(to) - 1);
+            Game_moveCards(STOCK_SIDE, -1, atoi(to) - 1);
             UI_updateScreen(STOCK_SIDE, atoi(to) - 1);
         }
         else if(!strcmp(to, "f")) {
             StackType st = Game_stacks[STOCK_SIDE]->top->suit;
-            Game_moveToFoundation(STOCK_SIDE, NULL);
+            Game_moveToFoundation(STOCK_SIDE, -1);
             UI_updateScreen(STOCK_SIDE, FOUNDATION + st);
         }
         else
@@ -52,12 +103,12 @@ void Game_input() {
         scanf(" %s", to);
 
         if(atoi(to) > 0 && atoi(to) < 8) {
-            Game_moveCards(atoi(move) - 1, value, atoi(to) - 1);
+            Game_moveCards(atoi(move) - 1, getCardValue(value), atoi(to) - 1);
             UI_updateScreen(atoi(move) - 1, atoi(to) - 1);
         }
         else if(!strcmp(to, "f")) {
             StackType st = Game_stacks[atoi(move) - 1]->top->suit;
-            Game_moveToFoundation(atoi(move) - 1, value);
+            Game_moveToFoundation(atoi(move) - 1, getCardValue(value));
             UI_updateScreen(atoi(move) - 1, FOUNDATION + st);
         }
         else
@@ -83,21 +134,22 @@ static bool isMovementValid(Card *base, Card *moving, StackType Stype) {
     if(Stype == TABLEAU) {
         if((base->suit == (moving->suit + 1) % 4 || 
             base->suit == (moving->suit + 3) % 4) &&                         // se a cor de naipe é diferente
-           (atoi(moving->value) + 1 == atoi(base->value) ||                  // se o valor de moving é base + 1
-            !strcmp(moving->value, "A") && atoi(base->value) == 2 ||         // se moving é A e base é 2
-            atoi(moving->value) == 10   && !strcmp(base->value, "J") ||      // se moving é 10 e base é J
-            !strcmp(moving->value, "J") && !strcmp(base->value, "Q") ||      // se moving é J e base é Q
-            !strcmp(moving->value, "Q") && !strcmp(base->value, "K"))) {     // se moving é Q e base é K
+            moving->value == base->value - 1) { 
+        //    (atoi(moving->value) + 1 == atoi(base->value) ||                  // se o valor de moving é base + 1
+        //     !strcmp(moving->value, "A") && atoi(base->value) == 2 ||         // se moving é A e base é 2
+        //     atoi(moving->value) == 10   && !strcmp(base->value, "J") ||      // se moving é 10 e base é J
+        //     !strcmp(moving->value, "J") && !strcmp(base->value, "Q") ||      // se moving é J e base é Q
+        //     !strcmp(moving->value, "Q") && !strcmp(base->value, "K"))) {     // se moving é Q e base é K
             return true;
         }
     }
     else {
-        if(base->suit == moving->suit &&                                     // se os naipes são iguais
-           (atoi(base->value) + 1 == atoi(moving->value) ||                  // se o valor de base é moving + 1
-            !strcmp(base->value, "A") && atoi(moving->value) == 2 ||         // se base é A e moving é 2
-            atoi(base->value) == 10   && !strcmp(moving->value, "J") ||      // se base é 10 e moving é J
-            !strcmp(base->value, "J") && !strcmp(moving->value, "Q") ||      // se base é J e moving é Q
-            !strcmp(base->value, "Q") && !strcmp(moving->value, "K"))) {     // se base é Q e moving é K
+        if(base->suit == moving->suit && base->value == moving->value - 1) {                                    // se os naipes são iguais
+        //    (atoi(base->value) + 1 == atoi(moving->value) ||                  // se o valor de base é moving + 1
+        //     !strcmp(base->value, "A") && atoi(moving->value) == 2 ||         // se base é A e moving é 2
+        //     atoi(base->value) == 10   && !strcmp(moving->value, "J") ||      // se base é 10 e moving é J
+        //     !strcmp(base->value, "J") && !strcmp(moving->value, "Q") ||      // se base é J e moving é Q
+        //     !strcmp(base->value, "Q") && !strcmp(moving->value, "K"))) {     // se base é Q e moving é K
             return true;
         }
     }
@@ -105,12 +157,13 @@ static bool isMovementValid(Card *base, Card *moving, StackType Stype) {
     return false;
 }
 
-void Game_moveToFoundation(int origin, char *card_value) {
-    Card *moving_card = Stack_popCards(Game_stacks[origin], toupperstr(card_value));
+void Game_moveToFoundation(int origin, int card_value) {
+    Card *moving_card = Stack_popCards(Game_stacks[origin], card_value);
 
     if(moving_card) {
         if(Stack_isEmpty(Game_stacks[FOUNDATION + moving_card->suit])) {
-            if(!strcmp(moving_card->value, "A")) {
+            // if(!strcmp(moving_card->value, "A")) {
+            if(moving_card->value == 0) {
                 Card_turn(Game_stacks[origin]->top);
                 Stack_pushCards(Game_stacks[FOUNDATION + moving_card->suit], moving_card);
             }
@@ -122,7 +175,8 @@ void Game_moveToFoundation(int origin, char *card_value) {
         else {
             Card *top = Game_stacks[FOUNDATION + moving_card->suit]->top;
 
-            if(strcmp(top->value, "K")) {
+            // if(strcmp(top->value, "K")) {
+            if(top->value != 12) {
                 if(isMovementValid(top, moving_card, FOUNDATION)) {
                     Card_turn(Game_stacks[origin]->top);
                     Stack_pushCards(Game_stacks[FOUNDATION + moving_card->suit], moving_card);
@@ -149,11 +203,11 @@ void Game_moveToFoundation(int origin, char *card_value) {
     free(moving_card);
 }
 
-void Game_moveCards(int origin_tb, char *card_value, int finish_tb) {
+void Game_moveCards(int origin_tb, int card_value, int finish_tb) {
     Card *moving_card = NULL;
 
     if(origin_tb == STOCK && finish_tb == STOCK_SIDE) {
-        moving_card = Stack_popCards(Game_stacks[STOCK], NULL);
+        moving_card = Stack_popCards(Game_stacks[STOCK], -1);
 
         if(moving_card) {
             moving_card->isTurned = false;
@@ -161,15 +215,16 @@ void Game_moveCards(int origin_tb, char *card_value, int finish_tb) {
         }
         else {
             while(!Stack_isEmpty(Game_stacks[STOCK_SIDE]))
-                Stack_pushCards(Game_stacks[STOCK], Stack_popCards(Game_stacks[STOCK_SIDE], NULL));
+                Stack_pushCards(Game_stacks[STOCK], Stack_popCards(Game_stacks[STOCK_SIDE], -1));
         }
     }
     else {
-        moving_card = Stack_popCards(Game_stacks[origin_tb], toupperstr(card_value));
+        moving_card = Stack_popCards(Game_stacks[origin_tb], card_value);
 
         if(moving_card) {
             if(Stack_isEmpty(Game_stacks[finish_tb])) {
-                if(!strcmp(moving_card->value, "K")) {
+                // if(!strcmp(moving_card->value, "K")) {
+                if(moving_card->value == 12) {
                     Card_turn(Game_stacks[origin_tb]->top);
                     Stack_pushCards(Game_stacks[finish_tb], moving_card);
                 }

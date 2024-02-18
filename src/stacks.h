@@ -12,12 +12,9 @@ typedef struct {
     StackType type;
 } Stack;
 
-Stack **Stack_generateGame(Card **deck);
-Stack **Stack_generateGame(Card **deck);
 Stack **Stack_init(int size);
 bool    Stack_isEmpty(Stack *stack);
 bool    Stack_isEmpty(Stack *stack);
 void    Stack_pushCards(Stack *stack, Card *card);
-Card   *Stack_popCards(Stack *stack, char *value);
+Card   *Stack_popCards(Stack *stack, char value);
 void    Stack_returnUnusedCard(Stack *stack, Card *card);
-int   **Stack_print(Stack *stack);

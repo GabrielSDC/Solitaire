@@ -7,7 +7,7 @@ typedef enum {
 typedef struct Card Card; 
 
 struct Card {
-    char *value;
+    int value;
     Suit suit;
     bool isTurned;
     bool isOnTop;
@@ -17,4 +17,3 @@ struct Card {
 Card **Card_generateDeck();
 Card  *Card_init(int value, Suit suit);
 void   Card_turn(Card *card);
-Card  *Card_get(Card **deck, char *value);

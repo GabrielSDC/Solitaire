@@ -55,7 +55,7 @@ void Stack_pushCards(Stack *stack, Card *card) {
     }
 }
 
-Card *Stack_popCards(Stack *stack, char *value) {
+Card *Stack_popCards(Stack *stack, char value) {
     Card *card = NULL, *anterior = NULL, *temp = NULL;
 
     if(!stack || Stack_isEmpty(stack))
@@ -63,7 +63,7 @@ Card *Stack_popCards(Stack *stack, char *value) {
 
     card = stack->first;
 
-    if(value == NULL) {
+    if(value == -1) {
         while(card->next) {
             anterior = card;
             card = card->next;
@@ -90,7 +90,8 @@ Card *Stack_popCards(Stack *stack, char *value) {
     }
 
     while(card) {
-        if(!strcmp(card->value, value) && !card->isTurned)
+        // if(!strcmp(card->value, value) && !card->isTurned)
+        if(card->value == value && !card->isTurned)
             break;
     
         anterior = card;
@@ -161,40 +162,3 @@ bool Stack_isEmpty(Stack *stack) {
     return stack->size == 0;
 }
 
-Stack **Stack_generateGame(Card **deck) {
-    Stack **gameStacks = Stack_init(13);
-    int initialPos, cnt = 0;
-
-    // generate the tableau
-    for(int i = 0; i < 7; i++) {
-        gameStacks[i]->type = TABLEAU;
-        initialPos = cnt;
-
-        for(int j = 0; j < i; j++) {
-            cnt++;
-            deck[cnt - 1]->next = deck[cnt];
-        }
-        deck[cnt++]->isTurned = false;
-
-        Stack_pushCards(gameStacks[i], deck[initialPos]);
-    }
-
-    // generate the empty foundations
-    for(int i = FOUNDATION; i < FOUNDATION + 4; i++)
-        gameStacks[i]->type = FOUNDATION;
-
-    // generate the stock and stock_side
-    initialPos = cnt;
-    while(cnt < 51) {
-        deck[cnt]->isTurned = false;
-        cnt++;
-        deck[cnt]->isTurned = false;
-        deck[cnt - 1]->next = deck[cnt];
-    }
-
-    Stack_pushCards(gameStacks[STOCK], deck[initialPos]);
-    gameStacks[STOCK]->type = STOCK;
-    gameStacks[STOCK_SIDE]->type = STOCK_SIDE;
-
-    return gameStacks;
-}

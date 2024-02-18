@@ -5,8 +5,6 @@
 #include <stdbool.h>
 #include "card.h"
 
-const char *cardVal[] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
-
 static void randDeck(Card **deck) {
     Card *temp;
     int rPos;
@@ -39,12 +37,12 @@ Card **Card_generateDeck() {
 Card *Card_init(int value, Suit suit) {
     Card *c = malloc(sizeof(Card));
 
-    c->value = malloc(sizeof(char*));
-    strcpy(c->value, cardVal[value]);
-    c->suit = suit;
+    // c->value    = malloc(sizeof(char*));
+    c->value    = value;
+    c->suit     = suit;
     c->isTurned = true;
-    c->isOnTop = false;
-    c->next = NULL;
+    c->isOnTop  = false;
+    c->next     = NULL;
 
     return c;
 }
@@ -54,9 +52,10 @@ void Card_turn(Card *card) {
         card->isTurned = false;
 }
 
-Card *Card_get(Card **deck, char *value) {
+Card *Card_get(Card **deck, char value) {
     for(int i = 0; i < 52; i++)
-        if(!strcmp(deck[i]->value, value))
+        // if(!strcmp(deck[i]->value, value))
+        if(deck[i]->value == value)
             return deck[i];
 
     return NULL;

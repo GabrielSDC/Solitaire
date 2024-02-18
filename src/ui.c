@@ -9,6 +9,8 @@ char *screen[60][7];
 
 int  longest_stack = 7;
 
+const char *cardValues[] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
+
 const char *suits[] = {"♥", "♠", "♦", "♣"};
 
 char *BLANK_SPACE =    "      ";
@@ -288,10 +290,11 @@ char *UI_getCard(Card *card) {
     else
         strcat(cardInfo, ";31m┌");
     
-    strcat(cardInfo, card->value);
+    strcat(cardInfo, cardValues[card->value]);
     strcat(cardInfo, suits[card->suit]);
     
-    if(strlen(card->value) == 1)
+    // if(strlen(card->value) == 1)
+    if(card->value != 9)
         strcat(cardInfo, "─");
     
     strcat(cardInfo, "─┐\e[0m");
