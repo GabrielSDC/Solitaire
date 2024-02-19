@@ -3,9 +3,11 @@
 #include <string.h>
 #include <ctype.h>
 #include "game.h"
+#define GIVE_UP 1
 
 Stack **Game_stacks;
 char error_message[100];
+int flag = 0;
 
 Stack **Game_startStacks(Card **deck) {
     Stack **gameStacks = Stack_init(13);
@@ -74,7 +76,10 @@ void Game_input() {
     printf("from: ");
     scanf(" %s", move);
 
-    if(!strcmp(move, "--help")) {
+    if(!strcmp(move, "exit")) {
+        flag = GIVE_UP;
+    }
+    else if(!strcmp(move, "--help")) {
         // Game_helpMessage();
     }
     else if(!strcmp(move, "n")) {
@@ -145,7 +150,7 @@ static bool isMovementValid(Card *base, Card *moving, StackType Stype) {
         }
     }
     else {
-        if(base->suit == moving->suit && base->value == moving->value - 1) {                                    // se os naipes são iguais
+        if(base->suit == moving->suit && base->value == moving->value - 1) { // se os naipes são iguais
         //    (atoi(base->value) + 1 == atoi(moving->value) ||                  // se o valor de base é moving + 1
         //     !strcmp(base->value, "A") && atoi(moving->value) == 2 ||         // se base é A e moving é 2
         //     atoi(base->value) == 10   && !strcmp(moving->value, "J") ||      // se base é 10 e moving é J
@@ -259,6 +264,9 @@ void Game_moveCards(int origin_tb, int card_value, int finish_tb) {
 }
 
 bool Game_isWon() {
+    if(flag == GIVE_UP)
+        return true;
+
     for(int i = FOUNDATION; i < FOUNDATION + 4; i++)
         if(Game_stacks[i]->size < 13)
             return false;
