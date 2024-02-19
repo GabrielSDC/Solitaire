@@ -58,11 +58,12 @@ static int getCardValue(char *value) {
         return num - 1;
 
     char letter = toupper(value[0]);
+    if(letter == 'A') return 0;
     if(letter == 'J') return 10;
     if(letter == 'Q') return 11; 
     if(letter == 'K') return 12;
 
-    return -1;
+    return -10;
 }
 
 void Game_input() {
