@@ -79,6 +79,9 @@ void Game_input() {
     if(!strcmp(move, "exit")) {
         flag = GIVE_UP;
     }
+    if(!strcmp(move, "solve")) {
+        Game_solve();
+    }
     else if(!strcmp(move, "--help")) {
         // Game_helpMessage();
     }
@@ -125,37 +128,19 @@ void Game_input() {
     }
 }
 
-static char *toupperstr(char *str) {
-    if(str)
-        for(int i = 0; i < strlen(str); i++)
-            str[i] = toupper(str[i]);
-
-    return str;
-}
-
 static bool isMovementValid(Card *base, Card *moving, StackType Stype) {
     if(!base && !moving || Stype != TABLEAU && Stype != FOUNDATION)
         return false;
 
     if(Stype == TABLEAU) {
         if((base->suit == (moving->suit + 1) % 4 || 
-            base->suit == (moving->suit + 3) % 4) &&                         // se a cor de naipe é diferente
+            base->suit == (moving->suit + 3) % 4) &&
             moving->value == base->value - 1) { 
-        //    (atoi(moving->value) + 1 == atoi(base->value) ||                  // se o valor de moving é base + 1
-        //     !strcmp(moving->value, "A") && atoi(base->value) == 2 ||         // se moving é A e base é 2
-        //     atoi(moving->value) == 10   && !strcmp(base->value, "J") ||      // se moving é 10 e base é J
-        //     !strcmp(moving->value, "J") && !strcmp(base->value, "Q") ||      // se moving é J e base é Q
-        //     !strcmp(moving->value, "Q") && !strcmp(base->value, "K"))) {     // se moving é Q e base é K
             return true;
         }
     }
     else {
         if(base->suit == moving->suit && base->value == moving->value - 1) { // se os naipes são iguais
-        //    (atoi(base->value) + 1 == atoi(moving->value) ||                  // se o valor de base é moving + 1
-        //     !strcmp(base->value, "A") && atoi(moving->value) == 2 ||         // se base é A e moving é 2
-        //     atoi(base->value) == 10   && !strcmp(moving->value, "J") ||      // se base é 10 e moving é J
-        //     !strcmp(base->value, "J") && !strcmp(moving->value, "Q") ||      // se base é J e moving é Q
-        //     !strcmp(base->value, "Q") && !strcmp(moving->value, "K"))) {     // se base é Q e moving é K
             return true;
         }
     }
@@ -287,4 +272,26 @@ void Game_freeStacks() {
         free(Game_stacks[i]);
     }
     free(Game_stacks);
+}
+
+static bool isGameSolved() {
+    for(int i = 0; i < 7; i++) {
+        if(Stack_isEmpty(Game_stacks[i])) continue;
+        for(Card *aux = Game_stacks[i]->first; aux->next != NULL; aux = aux->next) {
+            if(aux->isTurned || aux->value != aux->next->value - 1)
+                return false;
+        }
+    }
+
+    return true;
+}
+
+void Game_solve() {
+    if(!isGameSolved()) return;
+    while(!Game_isWon()) {
+        for(int i = 0; i < 7; i++) {
+            if(!Stack_isEmpty(Game_stacks[i]))
+                Game_moveToFoundation(i, -1);
+        }
+    }
 }
