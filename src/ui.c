@@ -79,20 +79,26 @@ void UI_initScreen(Stack **s) {
     for(int i = 0; i < 7; i++) {
         int pos = 4;
 
-        for(Card *temp = s[i]->first; temp->next; temp = temp->next) {
-            screen[pos++][i] = TURNED_CARD[0];
-        }
-
-        screen[pos++][i] = UI_getCard(s[i]->top);
-        
-        if(s[i]->top->suit == HEARTS || s[i]->top->suit == DIAMONDS) {
-            for(int j = 0; j < 3; j++) {
-                screen[pos++][i] = CARD_RED[j];
-            }
+        if(Stack_isEmpty(s[i])) {
+            for(int j = 0; j < 4; j++)
+             screen[pos++][i] = EMPTY_TABLE[j];
         }
         else {
-            for(int j = 0; j < 3; j++) {
-                screen[pos++][i] = CARD_BLACK[j];
+            for(Card *temp = s[i]->first; temp->next; temp = temp->next) {
+                screen[pos++][i] = TURNED_CARD[0];
+            }
+
+            screen[pos++][i] = UI_getCard(s[i]->top);
+            
+            if(s[i]->top->suit == HEARTS || s[i]->top->suit == DIAMONDS) {
+                for(int j = 0; j < 3; j++) {
+                    screen[pos++][i] = CARD_RED[j];
+                }
+            }
+            else {
+                for(int j = 0; j < 3; j++) {
+                    screen[pos++][i] = CARD_BLACK[j];
+                }
             }
         }
 

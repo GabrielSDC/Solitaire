@@ -17,3 +17,4 @@ struct Card {
 Card **Card_generateDeck();
 Card  *Card_init(int value, Suit suit);
 void   Card_turn(Card *card);
+Card *Card_get(Card **deck, int value, Suit s);

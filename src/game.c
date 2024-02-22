@@ -277,9 +277,13 @@ void Game_freeStacks() {
 static bool isGameSolved() {
     for(int i = 0; i < 7; i++) {
         if(Stack_isEmpty(Game_stacks[i])) continue;
-        for(Card *aux = Game_stacks[i]->first; aux->next != NULL; aux = aux->next) {
-            if(aux->isTurned || aux->value != aux->next->value - 1)
+        for(Card *aux = Game_stacks[i]->first; aux->next; aux = aux->next) {
+            if(aux->isTurned || 
+               aux->value != aux->next->value + 1 ||
+               aux->suit != (aux->next->suit + 1) % 4 && 
+               aux->suit != (aux->next->suit + 3) % 4) {
                 return false;
+            }
         }
     }
 
@@ -290,8 +294,30 @@ void Game_solve() {
     if(!isGameSolved()) return;
     while(!Game_isWon()) {
         for(int i = 0; i < 7; i++) {
-            if(!Stack_isEmpty(Game_stacks[i]))
+            if(!Stack_isEmpty(Game_stacks[i])) {
                 Game_moveToFoundation(i, -1);
+            }
         }
     }
+    
+    for(int i = 0; i < NONE; i++) {
+        UI_updateScreen(i, i);
+    }
+}
+
+static void personalizarDeck(Stack **gameStacks, Card **deck) {
+    Card *aux = NULL;
+    for(int i = 12; i >= 0; i--) {
+        for(Suit j = HEARTS; j <= CLUBS; j++) {
+            if(i % 2)
+                aux = Card_get(deck, i, j);
+            else
+                aux = Card_get(deck, i, (j + 1) % 4);
+
+            Card_turn(aux);
+            Stack_pushCards(gameStacks[j], aux);
+        }
+    }
+    aux = NULL;
+    free(aux);
 }

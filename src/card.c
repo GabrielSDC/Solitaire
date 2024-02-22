@@ -52,11 +52,9 @@ void Card_turn(Card *card) {
         card->isTurned = false;
 }
 
-Card *Card_get(Card **deck, char value) {
+Card *Card_get(Card **deck, int value, Suit s) {
     for(int i = 0; i < 52; i++)
-        // if(!strcmp(deck[i]->value, value))
-        if(deck[i]->value == value)
+        if(deck[i]->value == value && deck[i]->suit == s)
             return deck[i];
-
     return NULL;
 }
