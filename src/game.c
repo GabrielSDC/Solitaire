@@ -103,7 +103,7 @@ void Game_input() {
             UI_updateScreen(STOCK_SIDE, FOUNDATION + st);
         }
         else
-            strcpy(error_message, "Invalid input!1");
+            strcpy(error_message, "Invalid input!");
     }
     else if(atoi(move) > 0 && atoi(move) < 8) {
         printf("Card: ");
@@ -121,10 +121,10 @@ void Game_input() {
             UI_updateScreen(atoi(move) - 1, FOUNDATION + st);
         }
         else
-            strcpy(error_message, "Invalid input!2");
+            strcpy(error_message, "Invalid input!");
     }
     else {
-        strcpy(error_message, "Invalid input!3");
+        strcpy(error_message, "Invalid input!");
     }
 }
 
@@ -153,32 +153,30 @@ void Game_moveToFoundation(int origin, int card_value) {
 
     if(moving_card) {
         if(Stack_isEmpty(Game_stacks[FOUNDATION + moving_card->suit])) {
-            // if(!strcmp(moving_card->value, "A")) {
             if(moving_card->value == 0) {
                 Card_turn(Game_stacks[origin]->top);
                 Stack_pushCards(Game_stacks[FOUNDATION + moving_card->suit], moving_card);
             }
             else {
                 Stack_returnUnusedCard(Game_stacks[origin], moving_card);
-                strcpy(error_message, "Invalid movement!1");
+                strcpy(error_message, "Invalid movement!");
             }
         }
         else {
             Card *top = Game_stacks[FOUNDATION + moving_card->suit]->top;
 
-            // if(strcmp(top->value, "K")) {
             if(top->value != 12) {
                 if(isMovementValid(top, moving_card, FOUNDATION)) {
                     Card_turn(Game_stacks[origin]->top);
                     Stack_pushCards(Game_stacks[FOUNDATION + moving_card->suit], moving_card);
                 }
                 else {
-                    strcpy(error_message, "Invalid movement!2");
+                    strcpy(error_message, "Invalid movement!");
                     Stack_returnUnusedCard(Game_stacks[origin], moving_card);
                 }
             }
             else {
-                strcpy(error_message, "Invalid movement!3");
+                strcpy(error_message, "Invalid movement!");
                 Stack_returnUnusedCard(Game_stacks[origin], moving_card);
             }
 
@@ -187,7 +185,7 @@ void Game_moveToFoundation(int origin, int card_value) {
         }
     }
     else {
-        strcpy(error_message, "Invalid movement!4");
+        strcpy(error_message, "Invalid movement!");
     }
 
     moving_card = NULL;
@@ -214,7 +212,6 @@ void Game_moveCards(int origin_tb, int card_value, int finish_tb) {
 
         if(moving_card) {
             if(Stack_isEmpty(Game_stacks[finish_tb])) {
-                // if(!strcmp(moving_card->value, "K")) {
                 if(moving_card->value == 12) {
                     Card_turn(Game_stacks[origin_tb]->top);
                     Stack_pushCards(Game_stacks[finish_tb], moving_card);
@@ -298,6 +295,9 @@ void Game_solve() {
                 Game_moveToFoundation(i, -1);
             }
         }
+        Game_moveToFoundation(STOCK, -1);
+        Game_moveToFoundation(STOCK_SIDE, -1);
+        Game_moveCards(STOCK, -1, STOCK_SIDE);
     }
     
     for(int i = 0; i < NONE; i++) {
