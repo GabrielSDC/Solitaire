@@ -3,11 +3,23 @@
 #include <string.h>
 #include <ctype.h>
 #include "game.h"
-#define GIVE_UP 1
 
-Stack **Game_stacks;
-char error_message[100];
-int flag = 0;
+Game *game = NULL;
+
+void Game_init() {
+    game = malloc(sizeof(Game));
+    
+    game->score = 0;
+    strcpy(game->error_message, "");
+    game->is_playing = true;
+    game->previous_move = NULL;
+
+    Card **deck = Card_generateDeck();
+    game->stacks = Game_startStacks(deck);
+
+    UI_initScreen(game->stacks);
+    UI_printLogo();
+}
 
 Stack **Game_startStacks(Card **deck) {
     Stack **gameStacks = Stack_init(13);
@@ -47,13 +59,6 @@ Stack **Game_startStacks(Card **deck) {
     return gameStacks;
 }
 
-void Game_init() {
-    Card **deck = Card_generateDeck();
-    Game_stacks = Game_startStacks(deck);
-    UI_initScreen(Game_stacks);
-    UI_printLogo();
-}
-
 static int getCardValue(char *value) {
     int num = atoi(value); 
     if(num > 0 && num < 11)
@@ -71,13 +76,13 @@ static int getCardValue(char *value) {
 void Game_input() {
     char move[10], value[10], to[20];
 
-    printf("%s\n", error_message);
-    strcpy(error_message, "");
+    printf("%s\n", game->error_message);
+    strcpy(game->error_message, "");
     printf("from: ");
     scanf(" %s", move);
 
     if(!strcmp(move, "exit")) {
-        flag = GIVE_UP;
+        game->is_playing = false;
     }
     if(!strcmp(move, "solve")) {
         Game_solve();
@@ -98,12 +103,12 @@ void Game_input() {
             UI_updateScreen(STOCK_SIDE, atoi(to) - 1);
         }
         else if(!strcmp(to, "f")) {
-            StackType st = Game_stacks[STOCK_SIDE]->top->suit;
+            StackType st = game->stacks[STOCK_SIDE]->top->suit;
             Game_moveToFoundation(STOCK_SIDE, -1);
             UI_updateScreen(STOCK_SIDE, FOUNDATION + st);
         }
         else
-            strcpy(error_message, "Invalid input!");
+            strcpy(game->error_message, "Invalid input!");
     }
     else if(atoi(move) > 0 && atoi(move) < 8) {
         printf("Card: ");
@@ -116,15 +121,15 @@ void Game_input() {
             UI_updateScreen(atoi(move) - 1, atoi(to) - 1);
         }
         else if(!strcmp(to, "f")) {
-            StackType st = Game_stacks[atoi(move) - 1]->top->suit;
+            StackType st = game->stacks[atoi(move) - 1]->top->suit;
             Game_moveToFoundation(atoi(move) - 1, getCardValue(value));
             UI_updateScreen(atoi(move) - 1, FOUNDATION + st);
         }
         else
-            strcpy(error_message, "Invalid input!");
+            strcpy(game->error_message, "Invalid input!");
     }
     else {
-        strcpy(error_message, "Invalid input!");
+        strcpy(game->error_message, "Invalid input!");
     }
 }
 
@@ -140,7 +145,7 @@ static bool isMovementValid(Card *base, Card *moving, StackType Stype) {
         }
     }
     else {
-        if(base->suit == moving->suit && base->value == moving->value - 1) { // se os naipes são iguais
+        if(base->suit == moving->suit && base->value == moving->value - 1) {
             return true;
         }
     }
@@ -148,88 +153,83 @@ static bool isMovementValid(Card *base, Card *moving, StackType Stype) {
     return false;
 }
 
-void Game_moveToFoundation(int origin, int card_value) {
-    Card *moving_card = Stack_popCards(Game_stacks[origin], card_value);
+bool Game_moveToFoundation(int origin, int card_value) {
+    Card *moving_card = Stack_popCards(game->stacks[origin], card_value);
 
-    if(moving_card) {
-        if(Stack_isEmpty(Game_stacks[FOUNDATION + moving_card->suit])) {
-            if(moving_card->value == 0) {
-                Card_turn(Game_stacks[origin]->top);
-                Stack_pushCards(Game_stacks[FOUNDATION + moving_card->suit], moving_card);
-            }
-            else {
-                Stack_returnUnusedCard(Game_stacks[origin], moving_card);
-                strcpy(error_message, "Invalid movement!");
-            }
-        }
-        else {
-            Card *top = Game_stacks[FOUNDATION + moving_card->suit]->top;
+    if(!moving_card) {
+        strcpy(game->error_message, "Card not found!");
+        return false;
+    }
+    
+    int suited_foundation = FOUNDATION + moving_card->suit;
+    if(Stack_isEmpty(game->stacks[suited_foundation])) {
+        if(moving_card->value != 0) {
+            Card_turn(game->stacks[origin]->top);
+            Stack_pushCards(game->stacks[suited_foundation], moving_card);
 
-            if(top->value != 12) {
-                if(isMovementValid(top, moving_card, FOUNDATION)) {
-                    Card_turn(Game_stacks[origin]->top);
-                    Stack_pushCards(Game_stacks[FOUNDATION + moving_card->suit], moving_card);
-                }
-                else {
-                    strcpy(error_message, "Invalid movement!");
-                    Stack_returnUnusedCard(Game_stacks[origin], moving_card);
-                }
-            }
-            else {
-                strcpy(error_message, "Invalid movement!");
-                Stack_returnUnusedCard(Game_stacks[origin], moving_card);
-            }
-
-            top = NULL;
-            free(top);
+            moving_card = NULL;
+            return true;
         }
     }
     else {
-        strcpy(error_message, "Invalid movement!");
+        Card *top = game->stacks[suited_foundation]->top;
+
+        if(top->value != 12) {
+            if(isMovementValid(top, moving_card, FOUNDATION)) {
+                Card_turn(game->stacks[origin]->top);
+                Stack_pushCards(game->stacks[suited_foundation], moving_card);
+
+                top = NULL, moving_card = NULL;
+                return true;
+            }
+        }
     }
 
+    strcpy(game->error_message, "Invalid movement!");
+    Stack_returnUnusedCard(game->stacks[origin], moving_card);
+    
     moving_card = NULL;
-    free(moving_card);
+    return false;
 }
 
 void Game_moveCards(int origin_tb, int card_value, int finish_tb) {
     Card *moving_card = NULL;
 
     if(origin_tb == STOCK && finish_tb == STOCK_SIDE) {
-        moving_card = Stack_popCards(Game_stacks[STOCK], -1);
+        moving_card = Stack_popCards(game->stacks[STOCK], -1);
 
         if(moving_card) {
             moving_card->isTurned = false;
-            Stack_pushCards(Game_stacks[STOCK_SIDE], moving_card);
+            Stack_pushCards(game->stacks[STOCK_SIDE], moving_card);
         }
         else {
-            while(!Stack_isEmpty(Game_stacks[STOCK_SIDE]))
-                Stack_pushCards(Game_stacks[STOCK], Stack_popCards(Game_stacks[STOCK_SIDE], -1));
+            while(!Stack_isEmpty(game->stacks[STOCK_SIDE]))
+                Stack_pushCards(game->stacks[STOCK], Stack_popCards(game->stacks[STOCK_SIDE], -1));
         }
     }
     else {
-        moving_card = Stack_popCards(Game_stacks[origin_tb], card_value);
+        moving_card = Stack_popCards(game->stacks[origin_tb], card_value);
 
         if(moving_card) {
-            if(Stack_isEmpty(Game_stacks[finish_tb])) {
+            if(Stack_isEmpty(game->stacks[finish_tb])) {
                 if(moving_card->value == 12) {
-                    Card_turn(Game_stacks[origin_tb]->top);
-                    Stack_pushCards(Game_stacks[finish_tb], moving_card);
+                    Card_turn(game->stacks[origin_tb]->top);
+                    Stack_pushCards(game->stacks[finish_tb], moving_card);
                 }
                 else {
-                    Stack_returnUnusedCard(Game_stacks[origin_tb], moving_card);
+                    Stack_returnUnusedCard(game->stacks[origin_tb], moving_card);
                 }
             }
             else {
-                Card *top = Game_stacks[finish_tb]->top;
+                Card *top = game->stacks[finish_tb]->top;
 
                 if(isMovementValid(top, moving_card, TABLEAU)) {
-                    Card_turn(Game_stacks[origin_tb]->top);
-                    Stack_pushCards(Game_stacks[finish_tb], moving_card);
+                    Card_turn(game->stacks[origin_tb]->top);
+                    Stack_pushCards(game->stacks[finish_tb], moving_card);
                 }
                 else {
-                    strcpy(error_message, "Invalid movement!6");
-                    Stack_returnUnusedCard(Game_stacks[origin_tb], moving_card);
+                    strcpy(game->error_message, "Invalid movement!6");
+                    Stack_returnUnusedCard(game->stacks[origin_tb], moving_card);
                 }
 
                 top = NULL;
@@ -237,7 +237,7 @@ void Game_moveCards(int origin_tb, int card_value, int finish_tb) {
             }
         }
         else {
-            strcpy(error_message, "Card not found!");
+            strcpy(game->error_message, "Card not found!");
         }
     }
 
@@ -246,11 +246,11 @@ void Game_moveCards(int origin_tb, int card_value, int finish_tb) {
 }
 
 bool Game_isWon() {
-    if(flag == GIVE_UP)
+    if(!game->is_playing)
         return true;
 
     for(int i = FOUNDATION; i < FOUNDATION + 4; i++)
-        if(Game_stacks[i]->size < 13)
+        if(game->stacks[i]->size < 13)
             return false;
 
     return true;
@@ -265,16 +265,16 @@ static void freeCards(Card *c) {
 
 void Game_freeStacks() {
     for(int i = 0; i < NONE; i++) {
-        freeCards(Game_stacks[i]->first);
-        free(Game_stacks[i]);
+        freeCards(game->stacks[i]->first);
+        free(game->stacks[i]);
     }
-    free(Game_stacks);
+    free(game->stacks);
 }
 
 static bool isGameSolved() {
     for(int i = 0; i < 7; i++) {
-        if(Stack_isEmpty(Game_stacks[i])) continue;
-        for(Card *aux = Game_stacks[i]->first; aux->next; aux = aux->next) {
+        if(Stack_isEmpty(game->stacks[i])) continue;
+        for(Card *aux = game->stacks[i]->first; aux->next; aux = aux->next) {
             if(aux->isTurned || 
                aux->value != aux->next->value + 1 ||
                aux->suit != (aux->next->suit + 1) % 4 && 
@@ -291,7 +291,7 @@ void Game_solve() {
     if(!isGameSolved()) return;
     while(!Game_isWon()) {
         for(int i = 0; i < 7; i++) {
-            if(!Stack_isEmpty(Game_stacks[i])) {
+            if(!Stack_isEmpty(game->stacks[i])) {
                 Game_moveToFoundation(i, -1);
             }
         }
