@@ -47,9 +47,13 @@ Card *Card_init(int value, Suit suit) {
     return c;
 }
 
-void Card_turn(Card *card) {
-    if(card)
+bool Card_turn(Card *card) {
+    bool turned = false;
+    if(card) {
+        turned = card->isTurned;
         card->isTurned = false;
+    }
+    return turned;
 }
 
 Card *Card_get(Card **deck, int value, Suit s) {

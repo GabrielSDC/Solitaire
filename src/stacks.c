@@ -55,7 +55,7 @@ void Stack_pushCards(Stack *stack, Card *card) {
     }
 }
 
-Card *Stack_popCards(Stack *stack, char value) {
+Card *Stack_popCards(Stack *stack, int value) {
     Card *card = NULL, *anterior = NULL, *temp = NULL;
 
     if(!stack || Stack_isEmpty(stack))
