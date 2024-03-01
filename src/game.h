@@ -7,6 +7,7 @@ typedef struct Move Move;
 struct Move {
     int origin_stack;
     int finish_stack;
+    int card_value;
     bool turned_new_card;
     Move *previous;
 };
@@ -24,6 +25,7 @@ void    Game_input();
 bool    Game_isWon();
 Errors  Game_moveCards(int origin_tb, int card_value, int finish_tb);
 Errors  Game_moveToFoundation(int origin, int card_value);
+void    Game_undoMovement();
 void    Game_freeStacks();
 void    Game_solve();
 Stack **Game_startStacks(Card **deck);

@@ -87,12 +87,14 @@ void Game_input() {
     if(!strcmp(move, "solve")) {
         Game_solve();
     }
+    if(!strcmp(move, "undo")) {
+        Game_undoMovement();
+    }
     else if(!strcmp(move, "--help")) {
         // Game_helpMessage();
     }
     else if(!strcmp(move, "n")) {
         Game_moveCards(STOCK, -1, STOCK_SIDE);
-        UI_updateScreen(STOCK, STOCK_SIDE);
     }
     else if(!strcmp(move, "s")) {
         printf("to: ");
@@ -100,12 +102,9 @@ void Game_input() {
 
         if(atoi(to) > 0 && atoi(move) < 8) {
             Game_moveCards(STOCK_SIDE, -1, atoi(to) - 1);
-            UI_updateScreen(STOCK_SIDE, atoi(to) - 1);
         }
         else if(!strcmp(to, "f")) {
-            StackType st = game->stacks[STOCK_SIDE]->top->suit;
             Game_moveToFoundation(STOCK_SIDE, -1);
-            UI_updateScreen(STOCK_SIDE, FOUNDATION + st);
         }
         else
             strcpy(game->error_message, "Invalid input!");
@@ -118,12 +117,9 @@ void Game_input() {
 
         if(atoi(to) > 0 && atoi(to) < 8) {
             Game_moveCards(atoi(move) - 1, getCardValue(value), atoi(to) - 1);
-            UI_updateScreen(atoi(move) - 1, atoi(to) - 1);
         }
         else if(!strcmp(to, "f")) {
-            StackType st = game->stacks[atoi(move) - 1]->top->suit;
             Game_moveToFoundation(atoi(move) - 1, getCardValue(value));
-            UI_updateScreen(atoi(move) - 1, FOUNDATION + st);
         }
         else
             strcpy(game->error_message, "Invalid input!");
@@ -161,8 +157,12 @@ static void newMove(int origin, int finish, Card *moving_card) {
     new_move->turned_new_card = Card_turn(game->stacks[origin]->top);
     new_move->previous        = game->last_move;
     
+    if(moving_card) new_move->card_value = moving_card->value;
+    else            new_move->card_value = -1;
+    
     game->last_move = new_move;
     Stack_pushCards(game->stacks[finish], moving_card);
+    UI_updateScreen(origin, finish);
 }
 
 Errors Game_moveToFoundation(int origin, int card_value) {
@@ -250,6 +250,37 @@ Errors Game_moveCards(int origin_tb, int card_value, int finish_tb) {
     return INVALID_MOVEMENT;
 }
 
+void Game_undoMovement() {
+    Move *last = game->last_move;
+    
+    if(!last) return;
+
+    Card *moving_card = NULL;
+    int origin = last->origin_stack;
+    int finish = last->finish_stack;
+    int card_value = last->card_value;
+
+    if(card_value == -1) {
+        while(!Stack_isEmpty(game->stacks[STOCK])) {
+            moving_card = Stack_popCards(game->stacks[STOCK], -1);
+            Stack_pushCards(game->stacks[STOCK_SIDE], moving_card);
+        }
+    }
+    else {
+        if(!Stack_isEmpty(game->stacks[origin]) && last->turned_new_card) {
+            game->stacks[origin]->top->isTurned = true;
+        }
+        moving_card = Stack_popCards(game->stacks[finish], card_value);
+        Stack_pushCards(game->stacks[origin], moving_card);
+    }
+
+    game->last_move = last->previous;
+    free(last);
+    last = NULL, moving_card = NULL;
+
+    UI_updateScreen(origin, finish);
+}
+
 bool Game_isWon() {
     if(!game->is_playing)
         return true;
@@ -265,6 +296,15 @@ static void freeCards(Card *c) {
     if(c) {
         freeCards(c->next);
         free(c);
+        c = NULL;
+    }
+}
+
+static void freeMoves(Move *m) {
+    if(m) {
+        freeMoves(m->previous);
+        free(m);
+        m = NULL;
     }
 }
 
@@ -272,8 +312,17 @@ void Game_freeStacks() {
     for(int i = 0; i < NONE; i++) {
         freeCards(game->stacks[i]->first);
         free(game->stacks[i]);
+        game->stacks[i] = NULL;
     }
     free(game->stacks);
+    game->stacks = NULL;
+
+    freeMoves(game->last_move);
+    free(game->last_move);
+    game->last_move = NULL;
+
+    free(game);
+    game = NULL;
 }
 
 static bool isGameSolved() {
@@ -284,6 +333,7 @@ static bool isGameSolved() {
                aux->value != aux->next->value + 1 ||
                aux->suit != (aux->next->suit + 1) % 4 && 
                aux->suit != (aux->next->suit + 3) % 4) {
+                aux = NULL;
                 return false;
             }
         }
@@ -324,5 +374,4 @@ static void personalizarDeck(Stack **gameStacks, Card **deck) {
         }
     }
     aux = NULL;
-    free(aux);
 }
