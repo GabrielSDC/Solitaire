@@ -55,7 +55,7 @@ void Stack_pushCards(Stack *stack, Card *card) {
     }
 }
 
-Card *Stack_popCards(Stack *stack, int value) {
+Card *Stack_popCards(Stack *stack, int value, Suit suit) {
     Card *card = NULL, *anterior = NULL, *temp = NULL;
 
     if(!stack || Stack_isEmpty(stack))
@@ -90,9 +90,10 @@ Card *Stack_popCards(Stack *stack, int value) {
     }
 
     while(card) {
-        // if(!strcmp(card->value, value) && !card->isTurned)
-        if(card->value == value && !card->isTurned)
-            break;
+        if(card->value == value && !card->isTurned) {
+            if(suit == -1 ^ card->suit == suit)
+                break;
+        }
     
         anterior = card;
         card = card->next;
@@ -102,8 +103,6 @@ Card *Stack_popCards(Stack *stack, int value) {
         return NULL;
 
     if(anterior) {
-        // if(anterior->isTurned && stack->type == TABLEAU)
-        //     anterior->isTurned = false;
         anterior->isOnTop = true;
         anterior->next = NULL;
         stack->top = anterior;
@@ -134,7 +133,6 @@ void Stack_returnUnusedCard(Stack *stack, Card *card) {
         return;
 
     if(!Stack_isEmpty(stack)) {
-        // stack->top->isTurned = true;
         stack->top->isOnTop = false;
         stack->top->next = card;    
     }
