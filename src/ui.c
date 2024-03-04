@@ -109,7 +109,7 @@ void UI_initScreen(Stack **s) {
 }
 
 void UI_updateScreen(int origin_tb, int finish_tb) {
-    if(origin_tb == STOCK) {
+    if(origin_tb == STOCK || finish_tb == STOCK) {
         if(!Stack_isEmpty(stacks[STOCK])) {
             for(int i = 0; i < 4; i++) {
                 screen[i][0] = TURNED_CARD[i];
@@ -291,7 +291,7 @@ char *UI_getCard(Card *card) {
 
     strcat(cardInfo, "\e[47");
     
-    if(card->suit == CLUBS || card->suit == SPADES)
+    if(card->suit % 2)
         strcat(cardInfo, ";30m┌");
     else
         strcat(cardInfo, ";31m┌");
@@ -299,7 +299,6 @@ char *UI_getCard(Card *card) {
     strcat(cardInfo, cardValues[card->value]);
     strcat(cardInfo, suits[card->suit]);
     
-    // if(strlen(card->value) == 1)
     if(card->value != 9)
         strcat(cardInfo, "─");
     

@@ -5,9 +5,9 @@ typedef enum {CARD_NOT_FOUND, INVALID_MOVEMENT, NO_ERROR} Errors;
 typedef struct Move Move;
 
 struct Move {
+    Card *card;
     int origin_stack;
     int finish_stack;
-    int card_value;
     bool turned_new_card;
     Move *previous;
 };

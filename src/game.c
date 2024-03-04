@@ -87,11 +87,11 @@ void Game_input() {
     else if(!strcmp(move, "solve")) {
         Game_solve();
     }
-    else if(!strcmp(move, "undo")) {
-        Game_undoMovement();
-    }
-    else if(!strcmp(move, "--help")) {
+    else if(!strcmp(move, "help")) {
         // Game_helpMessage();
+    }
+    else if(!strcmp(move, "u")) {
+        Game_undoMovement();
     }
     else if(!strcmp(move, "n")) {
         Game_moveCards(STOCK, -1, STOCK_SIDE);
@@ -153,7 +153,7 @@ static void newMove(int origin, int finish, Card *moving_card) {
     new_move->finish_stack    = finish;
     new_move->turned_new_card = Card_turn(game->stacks[origin]->top);
     new_move->previous        = game->last_move;
-    new_move->card_value      = moving_card ? moving_card->value : -1;
+    new_move->card            = moving_card;
     
     game->last_move = new_move;
     Stack_pushCards(game->stacks[finish], moving_card);
@@ -161,7 +161,7 @@ static void newMove(int origin, int finish, Card *moving_card) {
 }
 
 Errors Game_moveToFoundation(int origin, int card_value) {
-    Card *moving_card = Stack_popCards(game->stacks[origin], card_value);
+    Card *moving_card = Stack_popCards(game->stacks[origin], card_value, -1);
 
     if(!moving_card) {
         strcpy(game->error_message, "Card not found!");
@@ -196,14 +196,14 @@ Errors Game_moveCards(int origin_tb, int card_value, int finish_tb) {
     Card *moving_card = NULL;
 
     if(origin_tb == STOCK && finish_tb == STOCK_SIDE) {
-        moving_card = Stack_popCards(game->stacks[STOCK], -1);
+        moving_card = Stack_popCards(game->stacks[STOCK], -1, -1);
 
         if(moving_card) {
             newMove(STOCK, STOCK_SIDE, moving_card);
         }
         else {
             while(!Stack_isEmpty(game->stacks[STOCK_SIDE])) {
-                moving_card = Stack_popCards(game->stacks[STOCK_SIDE], -1);
+                moving_card = Stack_popCards(game->stacks[STOCK_SIDE], -1, -1);
                 Stack_pushCards(game->stacks[STOCK], moving_card);
             }
             newMove(STOCK_SIDE, STOCK, NULL);
@@ -212,7 +212,7 @@ Errors Game_moveCards(int origin_tb, int card_value, int finish_tb) {
         return NO_ERROR;
     }
     else {
-        moving_card = Stack_popCards(game->stacks[origin_tb], card_value);
+        moving_card = Stack_popCards(game->stacks[origin_tb], card_value, -1);
 
         if(!moving_card) {
             strcpy(game->error_message, "Card not found!");
@@ -248,14 +248,13 @@ void Game_undoMovement() {
     
     if(!last) return;
 
-    Card *moving_card = NULL;
+    Card *moving_card = NULL; 
     int origin = last->origin_stack;
     int finish = last->finish_stack;
-    int card_value = last->card_value;
 
-    if(card_value == -1) {
+    if(!last->card) {
         while(!Stack_isEmpty(game->stacks[STOCK])) {
-            moving_card = Stack_popCards(game->stacks[STOCK], -1);
+            moving_card = Stack_popCards(game->stacks[STOCK], -1, -1);
             Stack_pushCards(game->stacks[STOCK_SIDE], moving_card);
         }
     }
@@ -263,12 +262,13 @@ void Game_undoMovement() {
         if(!Stack_isEmpty(game->stacks[origin]) && last->turned_new_card) {
             game->stacks[origin]->top->isTurned = true;
         }
-        moving_card = Stack_popCards(game->stacks[finish], card_value);
+        int value = last->card->value, suit = last->card->suit;
+        moving_card = Stack_popCards(game->stacks[finish], value, suit);
         Stack_pushCards(game->stacks[origin], moving_card);
     }
 
     game->last_move = last->previous;
-    last->previous = NULL;
+    last->previous = NULL, last->card = NULL;
     free(last);
     last = NULL, moving_card = NULL;
 
