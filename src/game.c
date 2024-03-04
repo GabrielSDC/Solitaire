@@ -84,10 +84,10 @@ void Game_input() {
     if(!strcmp(move, "exit")) {
         game->is_playing = false;
     }
-    if(!strcmp(move, "solve")) {
+    else if(!strcmp(move, "solve")) {
         Game_solve();
     }
-    if(!strcmp(move, "undo")) {
+    else if(!strcmp(move, "undo")) {
         Game_undoMovement();
     }
     else if(!strcmp(move, "--help")) {
@@ -134,16 +134,13 @@ static bool isMovementValid(Card *base, Card *moving, StackType Stype) {
         return false;
 
     if(Stype == TABLEAU) {
-        if((base->suit == (moving->suit + 1) % 4 || 
-            base->suit == (moving->suit + 3) % 4) &&
-            moving->value == base->value - 1) { 
-            return true;
-        }
-    }
-    else {
-        if(base->suit == moving->suit && base->value == moving->value - 1) {
-            return true;
-        }
+        return (base->suit == (moving->suit + 1) % 4 || 
+                base->suit == (moving->suit + 3) % 4) &&
+                moving->value == base->value - 1;
+    } 
+
+    if(Stype == FOUNDATION) {
+        return base->suit == moving->suit && base->value == moving->value - 1;
     }
 
     return false;
@@ -156,9 +153,7 @@ static void newMove(int origin, int finish, Card *moving_card) {
     new_move->finish_stack    = finish;
     new_move->turned_new_card = Card_turn(game->stacks[origin]->top);
     new_move->previous        = game->last_move;
-    
-    if(moving_card) new_move->card_value = moving_card->value;
-    else            new_move->card_value = -1;
+    new_move->card_value      = moving_card ? moving_card->value : -1;
     
     game->last_move = new_move;
     Stack_pushCards(game->stacks[finish], moving_card);
@@ -183,12 +178,10 @@ Errors Game_moveToFoundation(int origin, int card_value) {
     }
     else {
         Card *top = game->stacks[suited_foundation]->top;
-        if(top->value != 12) {
-            if(isMovementValid(top, moving_card, FOUNDATION)) {
-                newMove(origin, suited_foundation, moving_card);
-                top = NULL, moving_card = NULL;
-                return NO_ERROR;
-            }
+        if(isMovementValid(top, moving_card, FOUNDATION)) {
+            newMove(origin, suited_foundation, moving_card);
+            top = NULL, moving_card = NULL;
+            return NO_ERROR;
         }
     }
 
@@ -275,6 +268,7 @@ void Game_undoMovement() {
     }
 
     game->last_move = last->previous;
+    last->previous = NULL;
     free(last);
     last = NULL, moving_card = NULL;
 
@@ -318,7 +312,6 @@ void Game_freeStacks() {
     game->stacks = NULL;
 
     freeMoves(game->last_move);
-    free(game->last_move);
     game->last_move = NULL;
 
     free(game);
