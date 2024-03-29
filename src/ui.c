@@ -7,6 +7,7 @@ Stack **stacks = NULL;
 
 char *screen[60][7];
 
+int score = 0;
 int  longest_stack = 7;
 
 const char *cardValues[] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
@@ -108,7 +109,9 @@ void UI_initScreen(Stack **s) {
     }
 }
 
-void UI_updateScreen(int origin_tb, int finish_tb) {
+void UI_updateScreen(int origin_tb, int finish_tb, int newScore) {
+    score = newScore;
+
     if(origin_tb == STOCK || finish_tb == STOCK) {
         if(!Stack_isEmpty(stacks[STOCK])) {
             for(int i = 0; i < 4; i++) {
@@ -275,6 +278,7 @@ void UI_printLogo() {
 void UI_printScreen() {
     system("clear");
 
+    printf("score: %d\n", score);
     for(int i = 0; i < longest_stack + 8; i++) {
         for(int j = 0; j < 7; j++) {
             printf("%s ", screen[i][j]);

@@ -8,6 +8,7 @@ struct Move {
     Card *card;
     int origin_stack;
     int finish_stack;
+    int score;
     bool turned_new_card;
     Move *previous;
 };

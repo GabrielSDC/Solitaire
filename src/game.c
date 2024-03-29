@@ -146,7 +146,11 @@ static bool isMovementValid(Card *base, Card *moving, StackType Stype) {
     return false;
 }
 
-static void newMove(int origin, int finish, Card *moving_card) {
+static int max(int a, int b) {
+    return a > b? a : b;
+}
+
+static void newMove(int origin, int finish, Card *moving_card, int score) {
     Move *new_move = malloc(sizeof(Move));
     
     new_move->origin_stack    = origin;
@@ -154,10 +158,14 @@ static void newMove(int origin, int finish, Card *moving_card) {
     new_move->turned_new_card = Card_turn(game->stacks[origin]->top);
     new_move->previous        = game->last_move;
     new_move->card            = moving_card;
+    new_move->score          = game->score;
     
+    int newScore = score + game->score + (new_move->turned_new_card ? 5 : 0);
+    game->score = max(newScore, 0);
     game->last_move = new_move;
+
     Stack_pushCards(game->stacks[finish], moving_card);
-    UI_updateScreen(origin, finish);
+    UI_updateScreen(origin, finish, game->score);
 }
 
 Errors Game_moveToFoundation(int origin, int card_value) {
@@ -171,7 +179,7 @@ Errors Game_moveToFoundation(int origin, int card_value) {
     int suited_foundation = FOUNDATION + moving_card->suit;
     if(Stack_isEmpty(game->stacks[suited_foundation])) {
         if(moving_card->value == 0) {
-            newMove(origin, suited_foundation, moving_card);
+            newMove(origin, suited_foundation, moving_card, 10);
             moving_card = NULL;
             return NO_ERROR;
         }
@@ -179,7 +187,7 @@ Errors Game_moveToFoundation(int origin, int card_value) {
     else {
         Card *top = game->stacks[suited_foundation]->top;
         if(isMovementValid(top, moving_card, FOUNDATION)) {
-            newMove(origin, suited_foundation, moving_card);
+            newMove(origin, suited_foundation, moving_card, 10);
             top = NULL, moving_card = NULL;
             return NO_ERROR;
         }
@@ -199,40 +207,40 @@ Errors Game_moveCards(int origin_tb, int card_value, int finish_tb) {
         moving_card = Stack_popCards(game->stacks[STOCK], -1, -1);
 
         if(moving_card) {
-            newMove(STOCK, STOCK_SIDE, moving_card);
+            newMove(STOCK, STOCK_SIDE, moving_card, 0);
         }
         else {
             while(!Stack_isEmpty(game->stacks[STOCK_SIDE])) {
                 moving_card = Stack_popCards(game->stacks[STOCK_SIDE], -1, -1);
                 Stack_pushCards(game->stacks[STOCK], moving_card);
             }
-            newMove(STOCK_SIDE, STOCK, NULL);
+            newMove(STOCK_SIDE, STOCK, NULL, -100);
         }
         moving_card = NULL;
         return NO_ERROR;
     }
+
+    moving_card = Stack_popCards(game->stacks[origin_tb], card_value, -1);
+    int points = game->stacks[origin_tb]->type == STOCK_SIDE ? 5 : 3;
+
+    if(!moving_card) {
+        strcpy(game->error_message, "Card not found!");
+        return CARD_NOT_FOUND;
+    }
+
+    if(Stack_isEmpty(game->stacks[finish_tb])) {
+        if(moving_card->value == 12) {
+            newMove(origin_tb, finish_tb, moving_card, points);
+            moving_card = NULL;
+            return NO_ERROR;
+        }
+    }
     else {
-        moving_card = Stack_popCards(game->stacks[origin_tb], card_value, -1);
-
-        if(!moving_card) {
-            strcpy(game->error_message, "Card not found!");
-            return CARD_NOT_FOUND;
-        }
-
-        if(Stack_isEmpty(game->stacks[finish_tb])) {
-            if(moving_card->value == 12) {
-                newMove(origin_tb, finish_tb, moving_card);
-                moving_card = NULL;
-                return NO_ERROR;
-            }
-        }
-        else {
-            Card *top = game->stacks[finish_tb]->top;
-            if(isMovementValid(top, moving_card, TABLEAU)) {
-                newMove(origin_tb, finish_tb, moving_card);
-                top = NULL, moving_card = NULL;
-                return NO_ERROR;
-            }
+        Card *top = game->stacks[finish_tb]->top;
+        if(isMovementValid(top, moving_card, TABLEAU)) {
+            newMove(origin_tb, finish_tb, moving_card, points);
+            top = NULL, moving_card = NULL;
+            return NO_ERROR;
         }
     }
     
@@ -267,12 +275,14 @@ void Game_undoMovement() {
         Stack_pushCards(game->stacks[origin], moving_card);
     }
 
+    game->score = max(--last->score, 0);
     game->last_move = last->previous;
+
     last->previous = NULL, last->card = NULL;
     free(last);
     last = NULL, moving_card = NULL;
 
-    UI_updateScreen(origin, finish);
+    UI_updateScreen(origin, finish, game->score);
 }
 
 bool Game_isWon() {
@@ -336,20 +346,23 @@ static bool isGameSolved() {
 }
 
 void Game_solve() {
+    int hit = 0, miss = 0;
     if(!isGameSolved()) return;
     while(!Game_isWon()) {
         for(int i = 0; i < 7; i++) {
             if(!Stack_isEmpty(game->stacks[i])) {
-                Game_moveToFoundation(i, -1);
+                Game_moveToFoundation(i, -1) == NO_ERROR ? hit++ : miss++;
             }
         }
-        Game_moveToFoundation(STOCK, -1);
-        Game_moveToFoundation(STOCK_SIDE, -1);
+        Game_moveToFoundation(STOCK, -1) == NO_ERROR ? hit++ : miss++;
+        Game_moveToFoundation(STOCK_SIDE, -1) == NO_ERROR ? hit++ : miss++;
         Game_moveCards(STOCK, -1, STOCK_SIDE);
     }
     
+    game->score += hit * 10;
+
     for(int i = 0; i < NONE; i++) {
-        UI_updateScreen(i, i);
+        UI_updateScreen(i, i, game->score);
     }
 }
 
