@@ -276,6 +276,8 @@ void Game_undoMovement() {
     }
 
     game->score = max(--last->score, 0);
+    if(last->previous)
+        last->previous->score = max(last->score--, 0);
     game->last_move = last->previous;
 
     last->previous = NULL, last->card = NULL;
