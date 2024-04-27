@@ -5,13 +5,15 @@
 void run() {
     Game_init();
 
-    do {
+    while(Game_isRunning()) {
         UI_printScreen();
         Game_input();
     }
-    while(!Game_isWon());
 
     UI_printScreen();
+    if(Game_isWon())
+        UI_printWiningMessage();
+    
     Game_freeStacks();
 }
 

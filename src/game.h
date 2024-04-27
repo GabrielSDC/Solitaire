@@ -24,6 +24,7 @@ typedef struct {
 void    Game_init();
 void    Game_input();
 bool    Game_isWon();
+bool    Game_isRunning();
 Errors  Game_moveCards(int origin_tb, int card_value, int finish_tb);
 Errors  Game_moveToFoundation(int origin, int card_value);
 void    Game_undoMovement();

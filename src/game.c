@@ -147,7 +147,7 @@ static bool isMovementValid(Card *base, Card *moving, StackType Stype) {
 }
 
 static int max(int a, int b) {
-    return a > b? a : b;
+    return a > b ? a : b;
 }
 
 static void newMove(int origin, int finish, Card *moving_card, int score) {
@@ -158,7 +158,7 @@ static void newMove(int origin, int finish, Card *moving_card, int score) {
     new_move->turned_new_card = Card_turn(game->stacks[origin]->top);
     new_move->previous        = game->last_move;
     new_move->card            = moving_card;
-    new_move->score          = game->score;
+    new_move->score           = game->score;
     
     int newScore = score + game->score + (new_move->turned_new_card ? 5 : 0);
     game->score = max(newScore, 0);
@@ -287,10 +287,11 @@ void Game_undoMovement() {
     UI_updateScreen(origin, finish, game->score);
 }
 
-bool Game_isWon() {
-    if(!game->is_playing)
-        return true;
+bool Game_isRunning() {
+    return game->is_playing && !Game_isWon();
+}
 
+bool Game_isWon() {
     for(int i = FOUNDATION; i < FOUNDATION + 4; i++)
         if(game->stacks[i]->size < 13)
             return false;
